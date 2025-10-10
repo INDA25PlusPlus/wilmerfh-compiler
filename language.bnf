@@ -1,0 +1,23 @@
+<program> ::= <statement-list>
+
+<statement-list> ::= <statement>
+             | <statement-list> <statement>
+
+<statement> ::= "let" <identifier> "=" <expr> ";"
+         | <identifier> "=" <expr> ";"
+         | "loop" <number> <block> ";"
+         | "print" "(" <expr> ")" ";"
+
+<block> ::= "{" <statement-list> "}"
+
+<expr> ::= <term>
+         | <expr> "+" <term>
+
+<term> ::= <identifier>
+         | <number>
+
+<identifier> ::= /[A-Za-z][A-Za-z0-9]*/
+
+<number>     ::= /[0-9]+/
+
+<string>     ::= /"[A-Za-z0-9]*"/

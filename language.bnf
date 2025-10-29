@@ -1,7 +1,6 @@
 <program> ::= <statement-list>
 
-<statement-list> ::= <statement>
-             | <statement-list> <statement>
+<statement-list> ::= <statement>*
 
 <statement> ::= "let" <identifier> "=" <expr> ";"
          | <identifier> "=" <expr> ";"

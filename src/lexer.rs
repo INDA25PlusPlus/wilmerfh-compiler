@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Identifier(String),
     Number(i32),
@@ -114,56 +114,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fibonacci_program() {
-        let input =
-            "let a = 0; let b = 1; let c = 0; loop 5 { c = a + b; a = b; b = c; }; print c;";
+    fn test_valid_program() {
+        let input = "let x = 5; loop 3 { x = x + 1; print x; };";
 
         let expected_tokens = vec![
-            // let a = 0;
+            // let x = 5;
             Token::Let,
-            Token::Identifier("a".to_string()),
+            Token::Identifier("x".to_string()),
             Token::Equals,
-            Token::Number(0),
+            Token::Number(5),
             Token::Semicolon,
-            // let b = 1;
-            Token::Let,
-            Token::Identifier("b".to_string()),
+            // loop 3 { x = x + 1; print x; }
+            Token::Loop,
+            Token::Number(3),
+            Token::OpenBracket,
+            Token::Identifier("x".to_string()),
             Token::Equals,
+            Token::Identifier("x".to_string()),
+            Token::Plus,
             Token::Number(1),
             Token::Semicolon,
-            // let c = 0;
-            Token::Let,
-            Token::Identifier("c".to_string()),
-            Token::Equals,
-            Token::Number(0),
-            Token::Semicolon,
-            // loop 5 {
-            Token::Loop,
-            Token::Number(5),
-            Token::OpenBracket,
-            // c = a + b;
-            Token::Identifier("c".to_string()),
-            Token::Equals,
-            Token::Identifier("a".to_string()),
-            Token::Plus,
-            Token::Identifier("b".to_string()),
-            Token::Semicolon,
-            // a = b;
-            Token::Identifier("a".to_string()),
-            Token::Equals,
-            Token::Identifier("b".to_string()),
-            Token::Semicolon,
-            // b = c;
-            Token::Identifier("b".to_string()),
-            Token::Equals,
-            Token::Identifier("c".to_string()),
-            Token::Semicolon,
-            // };
-            Token::CloseBracket,
-            Token::Semicolon,
-            // print c;
             Token::Print,
-            Token::Identifier("c".to_string()),
+            Token::Identifier("x".to_string()),
+            Token::Semicolon,
+            Token::CloseBracket,
             Token::Semicolon,
         ];
 

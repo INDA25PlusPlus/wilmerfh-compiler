@@ -29,7 +29,9 @@ impl Parser {
 
     pub fn parse(&mut self) -> AbstractSyntaxTree {
         let statements = self.parse_statement_list();
-        AbstractSyntaxTree { statements }
+        AbstractSyntaxTree {
+            statement_list: statements,
+        }
     }
 
     fn parse_statement_list(&mut self) -> StatementList {

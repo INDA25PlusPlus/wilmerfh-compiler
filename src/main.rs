@@ -4,9 +4,11 @@ use std::fs;
 mod ast;
 mod lexer;
 mod parser;
+mod semantic_analyzer;
 
 use lexer::Lexer;
 use parser::Parser;
+use semantic_analyzer::{SemanticAnalyzer, SemanticError};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
@@ -29,6 +31,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if print_ast_flag {
         println!("{:?}", &ast);
+    }
+
+    match SemanticAnalyzer::analyze(&ast) {
+        Ok(()) => {}
+        Err(errors) => {
+            eprintln!("Semantic analysis failed:");
+            for error in errors {
+                match error {
+                    SemanticError::UndeclaredVariable(name) => {
+                        eprintln!("  Error: Use of undeclared variable '{}'", name);
+                    }
+                }
+            }
+            std::process::exit(1);
+        }
     }
 
     Ok(())

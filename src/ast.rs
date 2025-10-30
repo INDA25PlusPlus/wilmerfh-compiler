@@ -55,5 +55,5 @@ pub struct StatementList {
 
 #[derive(Debug)]
 pub struct AbstractSyntaxTree {
-    pub statements: StatementList,
+    pub statement_list: StatementList,
 }

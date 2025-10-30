@@ -9,35 +9,50 @@ pub enum SemanticError {
     UndeclaredVariable(String),
 }
 
-pub struct SymbolTable {
-    declared_variables: HashSet<String>,
+pub struct ScopeStack {
+    scopes: Vec<HashSet<String>>,
 }
 
-impl SymbolTable {
+impl ScopeStack {
     pub fn new() -> Self {
-        SymbolTable {
-            declared_variables: HashSet::new(),
+        ScopeStack {
+            scopes: vec![HashSet::new()],
         }
     }
 
+    pub fn enter_scope(&mut self) {
+        self.scopes.push(HashSet::new());
+    }
+
+    pub fn exit_scope(&mut self) {
+        self.scopes.pop();
+    }
+
     pub fn declare(&mut self, name: String) {
-        self.declared_variables.insert(name);
+        if let Some(current_scope) = self.scopes.last_mut() {
+            current_scope.insert(name);
+        }
     }
 
     pub fn declared(&self, name: &str) -> bool {
-        self.declared_variables.contains(name)
+        for scope in self.scopes.iter().rev() {
+            if scope.contains(name) {
+                return true;
+            }
+        }
+        false
     }
 }
 
 pub struct SemanticAnalyzer {
-    symbol_table: SymbolTable,
+    scope_stack: ScopeStack,
     errors: Vec<SemanticError>,
 }
 
 impl SemanticAnalyzer {
     fn new() -> Self {
         SemanticAnalyzer {
-            symbol_table: SymbolTable::new(),
+            scope_stack: ScopeStack::new(),
             errors: Vec::new(),
         }
     }
@@ -69,12 +84,12 @@ impl SemanticAnalyzer {
     }
 
     fn analyze_let_statement(&mut self, let_stmt: &LetStatement) {
-        self.symbol_table.declare(let_stmt.identifier.clone());
+        self.scope_stack.declare(let_stmt.identifier.clone());
         self.analyze_expression(&let_stmt.value);
     }
 
     fn analyze_assignment_statement(&mut self, assign_stmt: &AssignmentStatement) {
-        if !self.symbol_table.declared(&assign_stmt.identifier) {
+        if !self.scope_stack.declared(&assign_stmt.identifier) {
             self.errors.push(SemanticError::UndeclaredVariable(
                 assign_stmt.identifier.clone(),
             ));
@@ -84,7 +99,9 @@ impl SemanticAnalyzer {
 
     fn analyze_loop_statement(&mut self, loop_stmt: &LoopStatement) {
         self.analyze_expression(&loop_stmt.count);
+        self.scope_stack.enter_scope();
         self.analyze_statement_list(&loop_stmt.body.statements);
+        self.scope_stack.exit_scope();
     }
 
     fn analyze_print_statement(&mut self, print_stmt: &PrintStatement) {
@@ -101,7 +118,7 @@ impl SemanticAnalyzer {
     fn analyze_term(&mut self, term: &Term) {
         match term {
             Term::Identifier(name) => {
-                if !self.symbol_table.declared(name) {
+                if !self.scope_stack.declared(name) {
                     self.errors
                         .push(SemanticError::UndeclaredVariable(name.clone()));
                 }
@@ -153,6 +170,24 @@ mod tests {
     #[test]
     fn test_undeclared_assignment() {
         let input = "x = 5;";
+        let lexer = Lexer::new(input.to_string());
+        let tokens: Vec<_> = lexer.collect();
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse();
+
+        let result = SemanticAnalyzer::analyze(&ast);
+
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert_eq!(errors.len(), 1);
+        match &errors[0] {
+            SemanticError::UndeclaredVariable(name) => assert_eq!(name, "x"),
+        }
+    }
+
+    #[test]
+    fn test_loop_scope_violation() {
+        let input = "loop 5 { let x = 10; }; print x;";
         let lexer = Lexer::new(input.to_string());
         let tokens: Vec<_> = lexer.collect();
         let mut parser = Parser::new(tokens);

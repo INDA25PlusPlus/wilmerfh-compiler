@@ -2,10 +2,13 @@ let a = 0;
 let b = 1;
 let c = 0;
 
-loop 5 {
+print 0;
+print 1;
+
+loop 20 {
     c = a + b;
     a = b;
     b = c;
+	print c;
 };
 
-print c;
